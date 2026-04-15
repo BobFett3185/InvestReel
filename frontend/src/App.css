@@ -1,0 +1,17 @@
+.app-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--bg-primary);
+}
+
+.page-content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
