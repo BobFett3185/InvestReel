@@ -3,7 +3,7 @@ import { fetchMarket, investInReel } from '../api'
 import InvestModal from '../components/InvestModal'
 import './Market.css'
 
-function Market() {
+function Market({ session }) {
   const [marketData, setMarketData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [sortBy, setSortBy] = useState('trending')
@@ -133,7 +133,9 @@ function Market() {
             onClick={() => setInvestReel(reel)}
           >
             <div className="market-rank">#{index + 1}</div>
-            <img src={reel.thumbnail} alt="" className="market-thumb" />
+            <div className="market-thumb" style={{ background: '#222', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: '24px' }}>▶</span>
+            </div>
             <div className="market-card-info">
               <div className="market-card-header">
                 <img src={reel.user_avatar} alt="" className="market-card-avatar" />
@@ -158,9 +160,10 @@ function Market() {
 
       {investReel && (
         <InvestModal
+          session={session}
           reel={investReel}
           onClose={() => setInvestReel(null)}
-          onInvest={(amount) => handleInvest(investReel.id, amount)}
+          onInvest={loadMarket}
         />
       )}
     </div>

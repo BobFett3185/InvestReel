@@ -1,32 +1,50 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { fetchUserBalance, executeInvestment } from '../api'
 import './InvestModal.css'
 
-function InvestModal({ reel, onClose, onInvest }) {
+function InvestModal({ session, reel, onClose, onInvest }) {
   const [amount, setAmount] = useState('')
   const [investing, setInvesting] = useState(false)
   const [result, setResult] = useState(null)
+  const [balance, setBalance] = useState(0)
 
   const presets = [5, 10, 25, 50, 100]
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchUserBalance(session.user.id).then(setBalance).catch(console.error)
+    }
+  }, [session])
 
   const handleInvest = async () => {
     const value = parseFloat(amount)
     if (!value || value <= 0) return
+    if (value > balance) {
+      alert("Insufficient funds! Your balance is $" + balance.toFixed(2))
+      return
+    }
+
     setInvesting(true)
+    
     try {
-      const res = await onInvest(value)
-      setResult(res)
-      setTimeout(() => {
-        onClose()
-      }, 1500)
+      const res = await executeInvestment(session.user.id, reel.id, value)
+      setResult({ message: `Successfully invested $${value}!`, new_price: res.new_price })
+      setTimeout(() => onClose(), 2000)
     } catch (e) {
       console.error(e)
+      alert(e.message)
+    } finally {
+      setInvesting(false)
     }
-    setInvesting(false)
   }
 
-  const changePct = reel.price_history && reel.price_history.length >= 2
-    ? (((reel.price_history[reel.price_history.length - 1] - reel.price_history[reel.price_history.length - 2]) / reel.price_history[reel.price_history.length - 2]) * 100).toFixed(2)
-    : 0
+  const currentPrice = reel.price || 10.00
+  let changePct = 0
+  if (reel.price_history && reel.price_history.length >= 2) {
+    const latest = reel.price_history[reel.price_history.length - 1].price
+    const prev = reel.price_history[reel.price_history.length - 2].price
+    changePct = prev ? (((latest - prev) / prev) * 100) : 0
+  }
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -49,18 +67,22 @@ function InvestModal({ reel, onClose, onInvest }) {
         <div className="invest-price-section glass-card">
           <div className="invest-price-row">
             <span className="invest-price-label">Current Price</span>
-            <span className="invest-price-value">${reel.price?.toFixed(2)}</span>
+            <span className="invest-price-value">${currentPrice.toFixed(2)}</span>
           </div>
           <div className="invest-price-row">
             <span className="invest-price-label">Change</span>
             <span className={`invest-price-change ${changePct >= 0 ? 'price-up' : 'price-down'}`}>
-              {changePct >= 0 ? '▲' : '▼'} {Math.abs(changePct)}%
+              {changePct >= 0 ? '▲' : '▼'} {Math.abs(changePct).toFixed(2)}%
             </span>
           </div>
           <div className="invest-price-row">
             <span className="invest-price-label">Investors</span>
-            <span className="invest-price-value">{reel.investments}</span>
+            <span className="invest-price-value">{reel.investments_count || 0}</span>
           </div>
+        </div>
+
+        <div className="invest-price-row" style={{ marginTop: 12, padding: '0 8px', justifyContent: 'center' }}>
+           <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Available Balance: <strong style={{color:'white'}}>${balance.toFixed(2)}</strong></span>
         </div>
 
         {result ? (

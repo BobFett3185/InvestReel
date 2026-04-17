@@ -1,26 +1,26 @@
 /* ─── RealInvest Design System ─────────────────────────────────────────────── */
 
 :root {
-  /* Colors */
-  --bg-primary: #0a0a1a;
-  --bg-secondary: #111128;
-  --bg-card: rgba(255, 255, 255, 0.05);
-  --bg-glass: rgba(255, 255, 255, 0.08);
-  --bg-glass-hover: rgba(255, 255, 255, 0.12);
+  /* Colors - Cyber Finance Theme */
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-card: #111111;
+  --bg-glass: rgba(17, 17, 17, 0.85);
+  --bg-glass-hover: rgba(26, 26, 26, 0.9);
 
   --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.65);
+  --text-secondary: rgba(255, 255, 255, 0.7);
   --text-muted: rgba(255, 255, 255, 0.4);
 
-  --accent-cyan: #00d4ff;
-  --accent-purple: #7b2ff7;
-  --accent-pink: #ff2d87;
-  --accent-gradient: linear-gradient(135deg, #00d4ff, #7b2ff7);
-  --accent-gradient-hover: linear-gradient(135deg, #33ddff, #9b5ff9);
+  --accent-cyan: #00e676;
+  --accent-purple: #00b359;
+  --accent-pink: #00e676; /* Replace pink hearts/likes with green overall */
+  --accent-gradient: linear-gradient(135deg, #00e676, #00b359);
+  --accent-gradient-hover: linear-gradient(135deg, #33ff99, #00cc66);
 
   --success: #00e676;
-  --danger: #ff4757;
-  --warning: #ffa726;
+  --danger: #ff3366;
+  --warning: #ffaa00;
 
   /* Spacing */
   --nav-height: 60px;

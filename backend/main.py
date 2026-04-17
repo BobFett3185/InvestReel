@@ -2,14 +2,32 @@
 RealInvest Backend — Prediction Market Social App (Prototype)
 Single-file FastAPI server with in-memory data store.
 """
-
+import time 
+import random
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
-import time
-import random
 import math
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+from supabase import create_client, Client
+
+# Load environment variables from root directory
+env_path = Path(__file__).resolve().parent.parent / '.env'
+load_dotenv(dotenv_path=env_path)
+
+# Initialize Supabase client
+SUPABASE_URL = os.environ.get("VITE_SUPABASE_URL", "replace-with-your-url")
+SUPABASE_KEY = os.environ.get("VITE_SUPABASE_ANON_KEY", "replace-with-your-key")
+
+supabase: Optional[Client] = None
+try:
+    if "replace-with-your-url" not in SUPABASE_URL:
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+except Exception as e:
+    print("Warning: Supabase client could not be initialized:", e)
 
 # ─── App Setup ────────────────────────────────────────────────────────────────
 
@@ -69,30 +87,7 @@ class Reel(BaseModel):
     price_history: list[float]
     created_at: float
 
-# ─── Seed Data ────────────────────────────────────────────────────────────────
 
-# Public domain / free-to-use video URLs from Pexels/Pixabay
-SAMPLE_VIDEOS = [
-    "https://videos.pexels.com/video-files/3571264/3571264-uhd_1440_2560_30fps.mp4",
-    "https://videos.pexels.com/video-files/4763824/4763824-uhd_1440_2560_24fps.mp4",
-    "https://videos.pexels.com/video-files/5752729/5752729-uhd_1440_2560_30fps.mp4",
-    "https://videos.pexels.com/video-files/4488089/4488089-uhd_1440_2560_24fps.mp4",
-    "https://videos.pexels.com/video-files/3209828/3209828-uhd_1440_2560_25fps.mp4",
-    "https://videos.pexels.com/video-files/5198055/5198055-uhd_1440_2560_30fps.mp4",
-    "https://videos.pexels.com/video-files/4434242/4434242-uhd_1440_2560_24fps.mp4",
-    "https://videos.pexels.com/video-files/4065924/4065924-uhd_1440_2560_24fps.mp4",
-]
-
-SAMPLE_THUMBNAILS = [
-    "https://images.pexels.com/videos/3571264/free-video-3571264.jpg?auto=compress&w=300",
-    "https://images.pexels.com/videos/4763824/free-video-4763824.jpg?auto=compress&w=300",
-    "https://images.pexels.com/videos/5752729/free-video-5752729.jpg?auto=compress&w=300",
-    "https://images.pexels.com/videos/4488089/free-video-4488089.jpg?auto=compress&w=300",
-    "https://images.pexels.com/videos/3209828/free-video-3209828.jpg?auto=compress&w=300",
-    "https://images.pexels.com/videos/5198055/free-video-5198055.jpg?auto=compress&w=300",
-    "https://images.pexels.com/videos/4434242/free-video-4434242.jpg?auto=compress&w=300",
-    "https://images.pexels.com/videos/4065924/free-video-4065924.jpg?auto=compress&w=300",
-]
 
 USERS: list[dict] = [
     {"id": 1, "username": "alex_creates", "display_name": "Alex Chen", "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=alex", "followers": 12400, "following": 320, "bio": "Creator & filmmaker 🎬"},
@@ -100,6 +95,8 @@ USERS: list[dict] = [
     {"id": 3, "username": "techbro_mike", "display_name": "Mike Williams", "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=mike", "followers": 34200, "following": 412, "bio": "Tech | Code | Coffee ☕"},
     {"id": 4, "username": "sofia.dance", "display_name": "Sofia Martinez", "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=sofia", "followers": 56100, "following": 230, "bio": "Dance is life 💃"},
     {"id": 5, "username": "nature_jake", "display_name": "Jake Thompson", "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=jake", "followers": 19300, "following": 567, "bio": "Exploring the outdoors 🏔️"},
+    {"id": 6, "username": "lisa.lens", "display_name": "Lisa Park", "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=lisa", "followers": 27800, "following": 445, "bio": "Photography & travel 📷"},
+    {"id": 7, "username": "dj_carlos", "display_name": "Carlos Rivera", "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=carlos", "followers": 41500, "following": 198, "bio": "Music producer 🎧"},
 ]
 
 CAPTIONS = [
@@ -111,23 +108,16 @@ CAPTIONS = [
     "Wait for it... 😱 #unexpected",
     "This is why I love what I do ❤️ #passion",
     "Vibes are immaculate today ✨ #mood",
-]
-
-SONGS = [
-    "🎵 Blinding Lights — The Weeknd",
-    "🎵 Levitating — Dua Lipa",
-    "🎵 Stay — Kid LAROI & Bieber",
-    "🎵 Sunflower — Post Malone",
-    "🎵 Heat Waves — Glass Animals",
-    "🎵 good 4 u — Olivia Rodrigo",
-    "🎵 Peaches — Justin Bieber",
-    "🎵 Montero — Lil Nas X",
+    "The grind never stops 💪 #hustle",
+    "When the beat drops 🎶 #music",
+    "Absolutely mesmerizing 😍 #beautiful",
+    "Life is too short to stay still 🚀 #adventure",
 ]
 
 now = time.time()
 
 REELS: list[dict] = []
-for i in range(8):
+for i in range(12):
     user = USERS[i % len(USERS)]
     base_price = round(random.uniform(0.5, 5.0), 2)
     likes = random.randint(200, 15000)
@@ -361,8 +351,79 @@ def get_user(user_id: int):
     raise HTTPException(status_code=404, detail="User not found")
 
 
-# ─── Run ──────────────────────────────────────────────────────────────────────
+# ─── Messaging (Supabase Integration) ─────────────────────────────────────────
+
+class ConversationRequest(BaseModel):
+    user1_id: str
+    user2_id: str
+
+class MessageRequest(BaseModel):
+    conversation_id: str
+    sender_id: str
+    content: Optional[str] = None
+    reel_id: Optional[str] = None
+
+@app.post("/api/conversations")
+def get_or_create_conversation(req: ConversationRequest):
+    """Get the existing conversation between two users, or create a new one."""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase not configured on backend.")
+    
+    # 1. Find if they share a conversation in `conversation_participants`
+    # We look for conversations user1 belongs to:
+    resp1 = supabase.table("conversation_participants").select("conversation_id").eq("user_id", req.user1_id).execute()
+    c_ids = [row["conversation_id"] for row in resp1.data]
+    
+    if c_ids:
+        # Look if user2 is in any of those conversation_ids
+        resp2 = supabase.table("conversation_participants").select("conversation_id").in_("conversation_id", c_ids).eq("user_id", req.user2_id).execute()
+        if resp2.data:
+            # Found shared conversation
+            return {"conversation_id": resp2.data[0]["conversation_id"], "is_new": False}
+    
+    # 2. No shared conversation found, create a new one
+    conv_resp = supabase.table("conversations").insert({}).execute()
+    new_cid = conv_resp.data[0]["id"]
+    
+    # 3. Add participants
+    supabase.table("conversation_participants").insert([
+        {"conversation_id": new_cid, "user_id": req.user1_id},
+        {"conversation_id": new_cid, "user_id": req.user2_id}
+    ]).execute()
+    
+    return {"conversation_id": new_cid, "is_new": True}
+
+@app.get("/api/conversations/{conversation_id}/messages")
+def get_messages(conversation_id: str):
+    """Get all messages for a specific conversation."""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase not configured on backend.")
+        
+    resp = supabase.table("messages").select("*, reels(*)").eq("conversation_id", conversation_id).order("created_at").execute()
+    return {"messages": resp.data}
+
+@app.post("/api/messages")
+def send_message(req: MessageRequest):
+    """Send a text message or a shared reel."""
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase not configured on backend.")
+        
+    if not req.content and not req.reel_id:
+        raise HTTPException(status_code=400, detail="Must provide either content or reel_id")
+        
+    payload = {
+        "conversation_id": req.conversation_id,
+        "sender_id": req.sender_id,
+        "content": req.content,
+    }
+    if req.reel_id:
+        payload["reel_id"] = req.reel_id
+        
+    resp = supabase.table("messages").insert(payload).execute()
+    return {"message": resp.data[0]}
+
+
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8080, reload=True)
