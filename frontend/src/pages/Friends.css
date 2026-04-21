@@ -95,6 +95,29 @@
   margin: 0;
 }
 
+.friend-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.message-btn {
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
+}
+
+.message-btn:hover {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+
 .follow-btn {
   padding: 8px 16px;
   border-radius: 20px;

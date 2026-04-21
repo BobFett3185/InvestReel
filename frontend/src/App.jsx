@@ -16,6 +16,7 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [hasOnboarded, setHasOnboarded] = useState(false)
   const [isChecking, setIsChecking] = useState(false)
+  const [messageTarget, setMessageTarget] = useState(null)
 
   useEffect(() => {
     // Get currently active session
@@ -80,11 +81,25 @@ function App() {
       case 'home':
         return <Feed session={session} />
       case 'friends':
-        return <Friends session={session} />
+        return (
+          <Friends
+            session={session}
+            onStartChat={(user) => {
+              setMessageTarget(user)
+              setActiveTab('messages')
+            }}
+          />
+        )
       case 'market':
         return <Market session={session} />
       case 'messages':
-        return <Messages session={session} />
+        return (
+          <Messages
+            session={session}
+            chatTarget={messageTarget}
+            onChatTargetHandled={() => setMessageTarget(null)}
+          />
+        )
       case 'profile':
         return <Profile session={session} />
       default:

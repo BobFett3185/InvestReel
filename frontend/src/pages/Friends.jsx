@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { searchUsers, fetchSuggestedFriends, toggleFollow, fetchMyFollows } from '../api'
 import './Friends.css'
 
-export default function Friends({ session }) {
+export default function Friends({ session, onStartChat }) {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [suggested, setSuggested] = useState([])
@@ -88,12 +88,20 @@ export default function Friends({ session }) {
         <div className="friend-info">
           <h3>@{user.username}</h3>
         </div>
-        <button 
-          className={`follow-btn ${isFollowing ? 'following' : ''}`}
-          onClick={() => handleToggleFollow(user.id)}
-        >
-          {isFollowing ? 'Following' : 'Follow'}
-        </button>
+        <div className="friend-actions">
+          <button
+            className="message-btn"
+            onClick={() => onStartChat?.(user)}
+          >
+            Message
+          </button>
+          <button 
+            className={`follow-btn ${isFollowing ? 'following' : ''}`}
+            onClick={() => handleToggleFollow(user.id)}
+          >
+            {isFollowing ? 'Following' : 'Follow'}
+          </button>
+        </div>
       </div>
     )
   }

@@ -1,6 +1,14 @@
 const API_BASE = 'http://localhost:8080';
 import { supabase } from './supabaseClient';
 
+async function parseJsonResponse(res) {
+  const payload = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    throw new Error(payload.detail || 'Request failed')
+  }
+  return payload
+}
+
 export async function fetchReels(page = 1, limit = 10) {
   const res = await fetch(`${API_BASE}/api/reels?page=${page}&limit=${limit}`);
   return res.json();
@@ -350,4 +358,49 @@ export async function updateUserProfile(userId, updates) {
   
   if (error) throw error
   return data
+}
+
+// =====================================
+// MESSAGING METHODS
+// =====================================
+
+export async function fetchConversations(userId) {
+  const res = await fetch(`${API_BASE}/api/users/${userId}/conversations`)
+  const data = await parseJsonResponse(res)
+  return data.conversations || []
+}
+
+export async function getOrCreateConversation(user1Id, user2Id) {
+  const res = await fetch(`${API_BASE}/api/conversations`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      user1_id: user1Id,
+      user2_id: user2Id,
+    }),
+  })
+
+  return parseJsonResponse(res)
+}
+
+export async function fetchConversationMessages(conversationId) {
+  const res = await fetch(`${API_BASE}/api/conversations/${conversationId}/messages`)
+  const data = await parseJsonResponse(res)
+  return data.messages || []
+}
+
+export async function sendConversationMessage(conversationId, senderId, content, reelId = null) {
+  const res = await fetch(`${API_BASE}/api/messages`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      conversation_id: conversationId,
+      sender_id: senderId,
+      content,
+      reel_id: reelId,
+    }),
+  })
+
+  const data = await parseJsonResponse(res)
+  return data.message
 }
